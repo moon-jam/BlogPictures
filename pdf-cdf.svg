@@ -1,0 +1,469 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="680"
+   height="362.04129"
+   viewBox="0 0 680 362.04129"
+   role="img"
+   version="1.1"
+   id="svg34"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <title
+     id="title1">Continuous: PDF and CDF</title>
+  <defs
+     id="defs2">
+    <marker
+       id="arrow"
+       viewBox="0 0 10 10"
+       refX="8"
+       refY="5"
+       markerWidth="6"
+       markerHeight="6"
+       orient="auto-start-reverse">
+      <path
+         d="M 2,1 8,5 2,9"
+         fill="none"
+         stroke="context-stroke"
+         stroke-width="1.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         id="path1" />
+    </marker>
+    <clipPath
+       id="pdf-clip">
+      <rect
+         x="60"
+         y="45"
+         width="240"
+         height="250"
+         id="rect1" />
+    </clipPath>
+    <clipPath
+       id="cdf-clip">
+      <rect
+         x="395"
+         y="45"
+         width="240"
+         height="250"
+         id="rect2" />
+    </clipPath>
+  </defs>
+  <rect
+     width="680"
+     height="362.04129"
+     rx="16"
+     fill="#0d1117"
+     id="rect3"
+     x="0"
+     y="0"
+     style="stroke-width:0.907095" />
+  <!-- Section label -->
+  <text
+     x="340"
+     y="28"
+     text-anchor="middle"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="13px"
+     font-weight="500"
+     fill="#ffffff"
+     opacity="0.4"
+     id="text3">Continuous</text>
+  <!-- PDF axes -->
+  <line
+     x1="60"
+     y1="45"
+     x2="60"
+     y2="295"
+     stroke="#ffffff"
+     stroke-width="0.8"
+     opacity="0.4"
+     id="line3" />
+  <line
+     x1="60"
+     y1="295"
+     x2="300"
+     y2="295"
+     stroke="#ffffff"
+     stroke-width="0.8"
+     opacity="0.4"
+     id="line4" />
+  <!-- f=1 dashed line: scale 0..1 → y 295..49 (246px); y=295-1*246=49 -->
+  <line
+     x1="60"
+     y1="49"
+     x2="300"
+     y2="49"
+     stroke="#ffffff"
+     stroke-width="0.4"
+     stroke-dasharray="4, 3"
+     opacity="0.25"
+     id="line5" />
+  <text
+     x="50"
+     y="49"
+     text-anchor="end"
+     dominant-baseline="central"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.45"
+     id="text5">1</text>
+  <text
+     x="50"
+     y="295"
+     text-anchor="end"
+     dominant-baseline="central"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.45"
+     id="text6">0</text>
+  <!-- PDF: peak ~1.6 → y=295-1.6*246=295-393... use shorter scale: 0..2 → 246px; f=1→y=172, f=1.6→y=172-0.6*123=98 -->
+  <!-- rescale: y=295 f=0, y=172 f=1, y=49 f=2 → 1unit=123px -->
+  <!-- peak f=1.6 → y=295-1.6*123=98 -->
+  <path
+     clip-path="url(#pdf-clip)"
+     d="m 60,295 c 25,0 40,-2 55,-7 15,-5 25,-20 35,-43 8,-19 13,-50 17,-80 2,-17 3,-45 3,-67 0,22 1,50 3,67 4,30 9,61 17,80 10,23 20,38 35,43 15,5 35,7 80,7 z"
+     fill="#34d399"
+     fill-opacity="0.18"
+     id="path6" />
+  <path
+     clip-path="url(#pdf-clip)"
+     d="m 60,295 c 25,0 40,-2 55,-7 15,-5 25,-20 35,-43 8,-19 13,-50 17,-80 2,-17 3,-45 3,-67 0,22 1,50 3,67 4,30 9,61 17,80 10,23 20,38 35,43 15,5 35,7 80,7"
+     fill="none"
+     stroke="#34d399"
+     stroke-width="2.5"
+     id="path7" />
+  <!-- peak marker -->
+  <line
+     x1="170"
+     y1="98"
+     x2="170"
+     y2="295"
+     stroke="#34d399"
+     stroke-width="0.5"
+     stroke-dasharray="3, 3"
+     opacity="0.35"
+     id="line7" />
+  <circle
+     cx="170"
+     cy="98"
+     r="4"
+     fill="#34d399"
+     id="circle7" />
+  <!-- annotation -->
+  <line
+     x1="174"
+     y1="96"
+     x2="224"
+     y2="75"
+     stroke="#ffffff"
+     stroke-width="0.5"
+     stroke-dasharray="2, 2"
+     opacity="0.35"
+     id="line8" />
+  <text
+     x="226"
+     y="68"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#34d399"
+     id="text8">peak &gt; 1 — OK</text>
+  <text
+     x="226"
+     y="82"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.4"
+     id="text9">area = 1</text>
+  <!-- area label -->
+  <text
+     x="170"
+     y="200"
+     text-anchor="middle"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="12px"
+     fill="#34d399"
+     opacity="0.8"
+     id="text10">∫ f(x) dx = 1</text>
+  <text
+     x="170"
+     y="216"
+     text-anchor="middle"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="10px"
+     fill="#ffffff"
+     opacity="0.35"
+     id="text11">−∞ to +∞</text>
+  <text
+     x="88"
+     y="310"
+     text-anchor="middle"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.45"
+     id="text12">1</text>
+  <text
+     x="120"
+     y="310"
+     text-anchor="middle"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.45"
+     id="text13">2</text>
+  <text
+     x="152"
+     y="310"
+     text-anchor="middle"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.45"
+     id="text14">3</text>
+  <text
+     x="184"
+     y="310"
+     text-anchor="middle"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.45"
+     id="text15">4</text>
+  <text
+     x="216"
+     y="310"
+     text-anchor="middle"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.45"
+     id="text16">5</text>
+  <text
+     x="248"
+     y="310"
+     text-anchor="middle"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.45"
+     id="text17">6</text>
+  <text
+     x="180"
+     y="35"
+     text-anchor="middle"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="14px"
+     font-weight="500"
+     fill="#34d399"
+     id="text18">PDF</text>
+  <text
+     x="180"
+     y="335"
+     text-anchor="middle"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.55"
+     id="text19">∫₋∞⁺∞ f(x) dx = 1</text>
+  <!-- Arrow -->
+  <line
+     x1="318"
+     y1="172"
+     x2="358"
+     y2="172"
+     stroke="#ffffff"
+     stroke-width="1.5"
+     opacity="0.55"
+     marker-end="url(#arrow)"
+     id="line19" />
+  <text
+     x="327"
+     y="166"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="20px"
+     fill="#ffffff"
+     opacity="0.65"
+     id="text20">∫</text>
+  <!-- CDF axes -->
+  <line
+     x1="400"
+     y1="45"
+     x2="400"
+     y2="295"
+     stroke="#ffffff"
+     stroke-width="0.8"
+     opacity="0.4"
+     id="line20" />
+  <line
+     x1="400"
+     y1="295"
+     x2="640"
+     y2="295"
+     stroke="#ffffff"
+     stroke-width="0.8"
+     opacity="0.4"
+     id="line21" />
+  <line
+     x1="400"
+     y1="49"
+     x2="640"
+     y2="49"
+     stroke="#ffffff"
+     stroke-width="0.4"
+     stroke-dasharray="4, 3"
+     opacity="0.2"
+     id="line22" />
+  <text
+     x="390"
+     y="49"
+     text-anchor="end"
+     dominant-baseline="central"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.45"
+     id="text22">1</text>
+  <text
+     x="390"
+     y="295"
+     text-anchor="end"
+     dominant-baseline="central"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.45"
+     id="text23">0</text>
+  <!-- CDF S-curve -->
+  <path
+     clip-path="url(#cdf-clip)"
+     d="m 400,295 c 20,0 35,-1 50,-3 10,-2 17,-9 25,-22 8,-15 13,-40 20,-70 7,-30 12,-65 20,-90 8,-25 13,-47 20,-58 5,-5 8,-7 15,-7 15,0 35,0 90,0 v 250 z"
+     fill="#fb923c"
+     fill-opacity="0.12"
+     id="path23" />
+  <path
+     clip-path="url(#cdf-clip)"
+     d="m 400,295 c 20,0 35,-1 50,-3 10,-2 17,-9 25,-22 8,-15 13,-40 20,-70 7,-30 12,-65 20,-90 8,-25 13,-47 20,-58 5,-5 8,-7 15,-7 15,0 35,0 90,0"
+     fill="none"
+     stroke="#fb923c"
+     stroke-width="2.5"
+     id="path24" />
+  <!-- inflection -->
+  <circle
+     cx="515"
+     cy="170"
+     r="4"
+     fill="#fb923c"
+     opacity="0.85"
+     id="circle24" />
+  <line
+     x1="515"
+     y1="295"
+     x2="515"
+     y2="170"
+     stroke="#fb923c"
+     stroke-width="0.5"
+     stroke-dasharray="3, 3"
+     opacity="0.35"
+     id="line24" />
+  <line
+     x1="518"
+     y1="168"
+     x2="558"
+     y2="148"
+     stroke="#ffffff"
+     stroke-width="0.5"
+     stroke-dasharray="2, 2"
+     opacity="0.35"
+     id="line25" />
+  <text
+     x="560"
+     y="141"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.55"
+     id="text25">inflection</text>
+  <text
+     x="560"
+     y="155"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.35"
+     id="text26">= PDF peak</text>
+  <text
+     x="428"
+     y="310"
+     text-anchor="middle"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.45"
+     id="text27">1</text>
+  <text
+     x="460"
+     y="310"
+     text-anchor="middle"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.45"
+     id="text28">2</text>
+  <text
+     x="492"
+     y="310"
+     text-anchor="middle"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.45"
+     id="text29">3</text>
+  <text
+     x="524"
+     y="310"
+     text-anchor="middle"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.45"
+     id="text30">4</text>
+  <text
+     x="556"
+     y="310"
+     text-anchor="middle"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.45"
+     id="text31">5</text>
+  <text
+     x="588"
+     y="310"
+     text-anchor="middle"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.45"
+     id="text32">6</text>
+  <text
+     x="520"
+     y="35"
+     text-anchor="middle"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="14px"
+     font-weight="500"
+     fill="#fb923c"
+     id="text33">CDF</text>
+  <text
+     x="520"
+     y="335"
+     text-anchor="middle"
+     font-family="ui-sans-serif, system-ui, sans-serif"
+     font-size="11px"
+     fill="#ffffff"
+     opacity="0.55"
+     id="text34">F(x) = ∫₋∞ˣ f(t) dt</text>
+</svg>
