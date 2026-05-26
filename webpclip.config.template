@@ -1,0 +1,12 @@
+# webpclip 設定範本。
+# setup.sh 會由此產生 webpclip.config（已被 .gitignore，不會推上 GitHub）。
+# 真正的 webpclip.config 才含你本機的絕對路徑，請勿手動把它加入 git。
+
+# 倉庫根目錄（setup.sh 會把 __REPO_DIR__ 換成本機實際路徑）
+REPO_DIR="__REPO_DIR__"
+
+# 壓縮方式：false = 有損(lossy，預設，較省空間)；true = 無損(lossless，畫質完美但檔案較大，適合截圖/圖表)
+WEBP_LOSSLESS=false
+
+# 有損模式下的品質 (0-100)；無損模式下作為壓縮努力參數
+WEBP_QUALITY=85

@@ -1,0 +1,203 @@
+#!/usr/bin/env bash
+#
+# Raycast Script Command metadata（在終端機直接執行時為無害註解）
+#
+# @raycast.schemaVersion 1
+# @raycast.title Upload Clipboard Image → BlogPictures
+# @raycast.mode compact
+# @raycast.icon 🖼️
+# @raycast.packageName BlogPictures
+#
+# @raycast.description 把剪貼簿的圖片/GIF 轉成 webp、上傳 BlogPictures 並複製網址
+# @raycast.author moon-jam
+#
+# 用途：抓剪貼簿的圖片（截圖）或 Finder 複製的圖片/GIF 檔，用 cwebp / gif2webp
+#       轉成 .webp 存進 <repo>/webp/、commit & push，最後讓你選擇複製
+#       網址 / Markdown / HTML 到剪貼簿。互動全部走 osascript 原生對話框，
+#       所以從 Raycast（免終端機）或終端機都能用。
+
+set -euo pipefail
+
+# ---------------------------------------------------------------------------
+# 0. 解析腳本自身真實路徑（處理 symlink），推算 repo 根目錄
+# ---------------------------------------------------------------------------
+resolve_dir() {
+  # 印出參數所指檔案（解開 symlink 後）所在的絕對目錄
+  local src="$1" dir target
+  while [ -L "$src" ]; do
+    dir="$(cd -P "$(dirname "$src")" && pwd)"
+    target="$(readlink "$src")"
+    case "$target" in
+      /*) src="$target" ;;
+      *)  src="$dir/$target" ;;
+    esac
+  done
+  cd -P "$(dirname "$src")" && pwd
+}
+
+SCRIPT_DIR="$(resolve_dir "${BASH_SOURCE[0]}")"
+AUTO_REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"   # bin/ 的上層 = repo root
+
+# ---------------------------------------------------------------------------
+# 1. 預設值 + 讀取 gitignored 的 webpclip.config（可覆寫）
+# ---------------------------------------------------------------------------
+WEBP_LOSSLESS=false
+WEBP_QUALITY=85
+REPO_DIR=""
+
+CONFIG_FILE="$AUTO_REPO_DIR/webpclip.config"
+if [ -f "$CONFIG_FILE" ]; then
+  # shellcheck source=/dev/null
+  source "$CONFIG_FILE"
+fi
+
+# 解析順序：$WEBPCLIP_REPO_DIR > webpclip.config 的 REPO_DIR > 自動推算
+REPO_DIR="${WEBPCLIP_REPO_DIR:-${REPO_DIR:-}}"
+if [ -z "$REPO_DIR" ] || [ "$REPO_DIR" = "__REPO_DIR__" ]; then
+  REPO_DIR="$AUTO_REPO_DIR"
+fi
+
+# ---------------------------------------------------------------------------
+# 2. GUI 輔助函式（成功通知 / 失敗對話框）
+# ---------------------------------------------------------------------------
+notify() {
+  osascript -e "display notification \"$1\" with title \"webpclip\"" >/dev/null 2>&1 || true
+}
+die() {
+  osascript -e "display dialog \"$1\" buttons {\"OK\"} default button 1 with title \"webpclip\" with icon stop" >/dev/null 2>&1 || true
+  echo "❌ $1" >&2
+  exit 1
+}
+
+# ---------------------------------------------------------------------------
+# 3. 前置檢查
+# ---------------------------------------------------------------------------
+command -v cwebp    >/dev/null 2>&1 || die "缺少 cwebp，請先執行：brew install webp pngpaste"
+command -v pngpaste >/dev/null 2>&1 || die "缺少 pngpaste，請先執行：brew install webp pngpaste"
+[ -d "$REPO_DIR/.git" ] || die "找不到 git 倉庫：$REPO_DIR（請執行 setup.sh 或設定 webpclip.config）"
+
+WORK="$(mktemp -d)"
+trap 'rm -rf "$WORK"' EXIT
+
+# ---------------------------------------------------------------------------
+# 4. 偵測剪貼簿來源：先試 Finder 複製的「檔案」，否則抓影像資料
+# ---------------------------------------------------------------------------
+SRC=""
+FROM_DATA=0
+
+filepath="$(osascript -e 'try' -e 'POSIX path of (the clipboard as «class furl»)' -e 'end try' 2>/dev/null || true)"
+if [ -n "$filepath" ] && [ -f "$filepath" ]; then
+  SRC="$filepath"
+else
+  SRC="$WORK/clip.png"
+  if ! pngpaste "$SRC" >/dev/null 2>&1; then
+    die "剪貼簿沒有圖片或檔案。請先複製圖片（截圖）或在 Finder 複製圖片/GIF 檔案。"
+  fi
+  FROM_DATA=1
+fi
+
+ext="$(printf '%s' "${SRC##*.}" | tr '[:upper:]' '[:lower:]')"
+is_gif=0
+[ "$ext" = "gif" ] && is_gif=1
+
+# ---------------------------------------------------------------------------
+# 5. 建議檔名 + 對話框確認（留空 → 時間戳）
+# ---------------------------------------------------------------------------
+if [ "$FROM_DATA" = "1" ]; then
+  suggested="$(date +%Y%m%d%H%M%S)"
+else
+  base="$(basename "$SRC")"
+  suggested="${base%.*}"
+fi
+suggested="$(printf '%s' "$suggested" | tr -d '"\\')"   # 清掉會破壞 AppleScript 的字元
+
+name="$(osascript <<EOF 2>/dev/null
+text returned of (display dialog "確認檔名（留空用時間戳）" default answer "$suggested" with title "webpclip" buttons {"取消", "確定"} default button "確定" cancel button "取消")
+EOF
+)" || die "已取消。"
+
+# 留空 → 時間戳；清洗成 URL 安全字元
+[ -z "$name" ] && name="$(date +%Y%m%d%H%M%S)"
+name="$(printf '%s' "$name" | tr ' ' '-' | tr -cd '[:alnum:]._-')"
+[ -z "$name" ] && name="$(date +%Y%m%d%H%M%S)"
+
+# ---------------------------------------------------------------------------
+# 6. webp 品質（每次詢問，預設帶 config 的 WEBP_QUALITY；留空/無效則沿用預設）
+# ---------------------------------------------------------------------------
+q_input="$(osascript <<EOF 2>/dev/null
+text returned of (display dialog "webp 品質/壓縮 (0-100，留空用預設 $WEBP_QUALITY)" default answer "$WEBP_QUALITY" with title "webpclip" buttons {"取消", "確定"} default button "確定" cancel button "取消")
+EOF
+)" || die "已取消。"
+if printf '%s' "$q_input" | grep -Eq '^[0-9]+$' && [ "$q_input" -ge 0 ] && [ "$q_input" -le 100 ]; then
+  WEBP_QUALITY="$q_input"
+fi
+
+# ---------------------------------------------------------------------------
+# 7. 轉檔到 <repo>/webp/<name>.webp（避免覆蓋既有檔）
+# ---------------------------------------------------------------------------
+WEBP_DIR="$REPO_DIR/webp"
+mkdir -p "$WEBP_DIR"
+if [ -e "$WEBP_DIR/$name.webp" ]; then
+  i=1
+  while [ -e "$WEBP_DIR/${name}-$i.webp" ]; do i=$((i + 1)); done
+  name="${name}-$i"
+fi
+OUT="$WEBP_DIR/$name.webp"
+
+if [ "$is_gif" = "1" ]; then
+  command -v gif2webp >/dev/null 2>&1 || die "缺少 gif2webp，請先執行：brew install webp"
+  if [ "$WEBP_LOSSLESS" = "true" ]; then
+    gif2webp -q "$WEBP_QUALITY" "$SRC" -o "$OUT" >/dev/null 2>&1 || die "gif2webp 轉檔失敗。"
+  else
+    gif2webp -lossy -q "$WEBP_QUALITY" "$SRC" -o "$OUT" >/dev/null 2>&1 || die "gif2webp 轉檔失敗。"
+  fi
+else
+  if [ "$WEBP_LOSSLESS" = "true" ]; then
+    cwebp -lossless -q "$WEBP_QUALITY" "$SRC" -o "$OUT" >/dev/null 2>&1 || die "cwebp 轉檔失敗。"
+  else
+    cwebp -q "$WEBP_QUALITY" "$SRC" -o "$OUT" >/dev/null 2>&1 || die "cwebp 轉檔失敗。"
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+# 8. git add / commit / push（push 成功才繼續，避免複製到壞連結）
+# ---------------------------------------------------------------------------
+cd "$REPO_DIR"
+git add "webp/$name.webp" || die "git add 失敗。"
+git commit -q -m "Add webp/$name.webp via webpclip" || die "git commit 失敗。"
+if ! git push -q 2>/dev/null; then
+  git pull --rebase --autostash -q 2>/dev/null || true
+  git push -q 2>/dev/null || die "git push 失敗（檢查網路/權限）。檔案已 commit，可稍後手動 push。"
+fi
+
+# ---------------------------------------------------------------------------
+# 9. 組 raw 網址（從 remote 解析 owner/repo + 當前 branch；解析不到則用預設）
+# ---------------------------------------------------------------------------
+remote="$(git remote get-url origin 2>/dev/null || true)"
+slug="$(printf '%s' "$remote" | sed -E 's#^git@github\.com:##; s#^https://github\.com/##; s#\.git$##')"
+[ -z "$slug" ] && slug="moon-jam/BlogPictures"
+branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)"
+url="https://raw.githubusercontent.com/$slug/refs/heads/$branch/webp/$name.webp"
+
+# ---------------------------------------------------------------------------
+# 10. 選格式複製到剪貼簿（取消則預設複製純網址）
+# ---------------------------------------------------------------------------
+choice="$(osascript <<'EOF' 2>/dev/null
+set theChoice to choose from list {"複製網址", "Markdown", "HTML"} with prompt "要複製哪個格式到剪貼簿？" default items {"複製網址"} with title "webpclip"
+if theChoice is false then
+  return ""
+else
+  return item 1 of theChoice
+end if
+EOF
+)"
+
+case "$choice" in
+  "Markdown") payload="![$name]($url)" ;;
+  "HTML")     payload="<img src=\"$url\" alt=\"$name\">" ;;
+  *)          payload="$url" ;;
+esac
+
+printf '%s' "$payload" | pbcopy
+notify "已複製到剪貼簿：$name.webp"
+echo "✅ 已上傳並複製：$payload"

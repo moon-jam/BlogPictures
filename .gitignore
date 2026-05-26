@@ -1,0 +1,5 @@
+# webpclip：本機實際設定（含絕對路徑），勿提交
+/webpclip.config
+
+# macOS
+.DS_Store
