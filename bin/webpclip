@@ -165,9 +165,10 @@ fi
 cd "$REPO_DIR"
 git add "webp/$name.webp" || die "git add 失敗。"
 git commit -q -m "Add webp/$name.webp via webpclip" || die "git commit 失敗。"
+pushed=1
 if ! git push -q 2>/dev/null; then
   git pull --rebase --autostash -q 2>/dev/null || true
-  git push -q 2>/dev/null || die "git push 失敗（檢查網路/權限）。檔案已 commit，可稍後手動 push。"
+  git push -q 2>/dev/null || pushed=0   # 離線/失敗：不中止，仍進複製選單（檔案已 commit）
 fi
 
 # ---------------------------------------------------------------------------
@@ -182,8 +183,10 @@ url="https://cdn.jsdelivr.net/gh/$slug@$branch/webp/$name.webp"
 # ---------------------------------------------------------------------------
 # 10. 選格式複製到剪貼簿（預設 Markdown；取消/Enter 也用 Markdown）
 # ---------------------------------------------------------------------------
-choice="$(osascript <<'EOF' 2>/dev/null
-set theChoice to choose from list {"Markdown", "複製連結", "HTML"} with prompt "要複製哪個格式到剪貼簿？" default items {"Markdown"} with title "webpclip"
+prompt_msg="要複製哪個格式到剪貼簿？"
+[ "$pushed" = "0" ] && prompt_msg="⚠ 尚未 push（離線？）。連結要等 push 成功後才會線上生效；離線時搭配 offline-jsdelivr 仍可本地預覽。要複製哪個格式？"
+choice="$(osascript <<EOF 2>/dev/null
+set theChoice to choose from list {"Markdown", "複製連結", "HTML"} with prompt "$prompt_msg" default items {"Markdown"} with title "webpclip"
 if theChoice is false then
   return ""
 else
@@ -199,5 +202,11 @@ case "$choice" in
 esac
 
 printf '%s' "$payload" | pbcopy
-notify "已複製到剪貼簿：$name.webp"
-echo "✅ 已上傳並複製：$payload"
+if [ "$pushed" = "1" ]; then
+  notify "已上傳並複製：$name.webp"
+  echo "✅ 已上傳並複製：$payload"
+else
+  notify "已複製（⚠ 尚未 push）：$name.webp"
+  echo "⚠ 已複製，但尚未 push。檔案已 commit，請稍後在 $REPO_DIR 執行 git push。"
+  echo "$payload"
+fi
