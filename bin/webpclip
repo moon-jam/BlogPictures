@@ -171,19 +171,19 @@ if ! git push -q 2>/dev/null; then
 fi
 
 # ---------------------------------------------------------------------------
-# 9. 組 raw 網址（從 remote 解析 owner/repo + 當前 branch；解析不到則用預設）
+# 9. 組 jsDelivr CDN 網址（從 remote 解析 owner/repo + 當前 branch；解析不到則用預設）
 # ---------------------------------------------------------------------------
 remote="$(git remote get-url origin 2>/dev/null || true)"
 slug="$(printf '%s' "$remote" | sed -E 's#^git@github\.com:##; s#^https://github\.com/##; s#\.git$##')"
 [ -z "$slug" ] && slug="moon-jam/BlogPictures"
 branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)"
-url="https://raw.githubusercontent.com/$slug/refs/heads/$branch/webp/$name.webp"
+url="https://cdn.jsdelivr.net/gh/$slug@$branch/webp/$name.webp"
 
 # ---------------------------------------------------------------------------
-# 10. 選格式複製到剪貼簿（取消則預設複製純網址）
+# 10. 選格式複製到剪貼簿（預設 Markdown；取消/Enter 也用 Markdown）
 # ---------------------------------------------------------------------------
 choice="$(osascript <<'EOF' 2>/dev/null
-set theChoice to choose from list {"複製網址", "Markdown", "HTML"} with prompt "要複製哪個格式到剪貼簿？" default items {"複製網址"} with title "webpclip"
+set theChoice to choose from list {"Markdown", "複製連結", "HTML"} with prompt "要複製哪個格式到剪貼簿？" default items {"Markdown"} with title "webpclip"
 if theChoice is false then
   return ""
 else
@@ -193,9 +193,9 @@ EOF
 )"
 
 case "$choice" in
-  "Markdown") payload="![$name]($url)" ;;
+  "複製連結") payload="$url" ;;
   "HTML")     payload="<img src=\"$url\" alt=\"$name\">" ;;
-  *)          payload="$url" ;;
+  *)          payload="![$name]($url)" ;;   # Markdown 為預設
 esac
 
 printf '%s' "$payload" | pbcopy

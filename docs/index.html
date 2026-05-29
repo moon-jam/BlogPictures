@@ -129,8 +129,8 @@
     <div class="lb-media" id="lb-media"></div>
     <div class="lb-name" id="lb-name"></div>
     <div class="lb-actions">
-      <button data-copy="url">複製網址</button>
       <button data-copy="md">複製 Markdown</button>
+      <button data-copy="url">複製連結</button>
       <button data-copy="html">複製 HTML</button>
       <a class="lb-open" id="lb-open" target="_blank" rel="noopener">開啟原圖 ↗</a>
     </div>
@@ -146,13 +146,13 @@ const VID_EXT = ["mp4","mov","webm","m4v"];
 const CACHE_KEY = "bp_tree_cache_v1", CACHE_TTL = 10 * 60 * 1000; // 10 分鐘
 
 const $ = (id) => document.getElementById(id);
-const rawUrl = (p) => `https://raw.githubusercontent.com/${OWNER}/${REPO}/refs/heads/${BRANCH}/${p}`;
+const cdnUrl = (p) => `https://cdn.jsdelivr.net/gh/${OWNER}/${REPO}@${BRANCH}/${p}`;
 const baseName = (p) => p.split("/").pop();
 const ext = (p) => { const b = baseName(p), i = b.lastIndexOf("."); return i >= 0 ? b.slice(i + 1).toLowerCase() : ""; };
 const stem = (p) => { const b = baseName(p), i = b.lastIndexOf("."); return i > 0 ? b.slice(0, i) : b; };
 const kindOf = (p) => { const e = ext(p); return IMG_EXT.includes(e) ? "image" : VID_EXT.includes(e) ? "video" : null; };
 const fmtSize = (n) => !n ? "" : n < 1024 ? n + " B" : n < 1048576 ? (n / 1024).toFixed(1) + " KB" : (n / 1048576).toFixed(1) + " MB";
-const itemFromPath = (path, size) => ({ path, kind: kindOf(path), url: rawUrl(path), name: baseName(path), stem: stem(path), size: size || 0 });
+const itemFromPath = (path, size) => ({ path, kind: kindOf(path), url: cdnUrl(path), name: baseName(path), stem: stem(path), size: size || 0 });
 
 let ALL = [];
 let current = null;

@@ -25,7 +25,7 @@ cd BlogPictures
 1. 複製圖片（截圖），或在 Finder 複製圖片 / GIF 檔案。
 2. 從 Raycast 觸發，或在終端機輸入 `webpclip`。
 3. 確認檔名（留空用時間戳）與品質。
-4. 自動轉檔、push，再選擇複製連結 / Markdown / HTML。
+4. 自動轉檔、push，再選擇複製成 Markdown（預設）/ 連結 / HTML，網址走 jsDelivr CDN。
 
 支援 PNG、JPG、GIF、WebP 等；GIF 需複製檔案本身才能保留動畫。
 
