@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BlogPictures · 圖庫</title>
+<style>
+  :root{
+    --bg:#0d1117; --card:#161b22; --border:#30363d;
+    --text:#e6edf3; --muted:#8b949e; --accent:#2f81f7; --ok:#238636;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;
+    background:var(--bg); color:var(--text);
+  }
+  header{
+    position:sticky; top:0; z-index:10;
+    background:rgba(13,17,23,.92); backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border); padding:16px 20px;
+  }
+  h1{margin:0; font-size:20px; letter-spacing:.5px}
+  .sub{margin:4px 0 12px; color:var(--muted); font-size:13px}
+  .toolbar{display:flex; gap:8px; flex-wrap:wrap}
+  .toolbar input,.toolbar select,.toolbar button{
+    background:var(--card); border:1px solid var(--border); color:var(--text);
+    border-radius:8px; padding:8px 10px; font-size:14px;
+  }
+  .toolbar input{flex:1; min-width:160px}
+  .toolbar button{cursor:pointer}
+  .toolbar button:hover,.toolbar input:focus,.toolbar select:focus{border-color:var(--accent); outline:none}
+  .count{color:var(--muted); font-size:12px; margin-top:8px}
+  .grid{
+    display:grid; gap:12px; padding:20px;
+    grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  }
+  .card{
+    background:var(--card); border:1px solid var(--border); border-radius:10px;
+    overflow:hidden; cursor:pointer; transition:transform .12s,border-color .12s;
+  }
+  .card:hover{transform:translateY(-2px); border-color:var(--accent)}
+  .thumb{
+    position:relative; aspect-ratio:1/1; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    background-color:#0b0e13;
+    background-image:
+      linear-gradient(45deg,#1b2230 25%,transparent 25%),
+      linear-gradient(-45deg,#1b2230 25%,transparent 25%),
+      linear-gradient(45deg,transparent 75%,#1b2230 75%),
+      linear-gradient(-45deg,transparent 75%,#1b2230 75%);
+    background-size:18px 18px;
+    background-position:0 0,0 9px,9px -9px,-9px 0;
+  }
+  .thumb img,.thumb video{width:100%; height:100%; object-fit:cover; display:block}
+  .thumb .play{
+    position:absolute; font-size:30px; color:#fff; opacity:.9;
+    text-shadow:0 1px 6px rgba(0,0,0,.7); pointer-events:none;
+  }
+  .badge{
+    position:absolute; top:6px; left:6px; font-size:10px; font-weight:600;
+    background:rgba(0,0,0,.6); color:#fff; padding:2px 6px; border-radius:5px;
+    text-transform:uppercase; letter-spacing:.5px;
+  }
+  .cap{padding:8px; font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .status{padding:0 20px 28px; color:var(--muted); font-size:13px}
+  footer{padding:24px 20px; border-top:1px solid var(--border); color:var(--muted); font-size:12px; text-align:center}
+  footer a{color:var(--accent); text-decoration:none}
+
+  /* lightbox */
+  .lightbox{position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center; padding:24px}
+  .lightbox[hidden]{display:none}
+  .lb-backdrop{position:absolute; inset:0; background:rgba(0,0,0,.82)}
+  .lb-content{position:relative; max-width:min(1100px,92vw); max-height:90vh; display:flex; flex-direction:column; gap:12px}
+  .lb-media{display:flex; align-items:center; justify-content:center; overflow:auto}
+  .lb-media img,.lb-media video{max-width:100%; max-height:70vh; border-radius:8px; background:#000}
+  .lb-name{color:var(--text); font-size:14px; text-align:center; word-break:break-all}
+  .lb-actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:center}
+  .lb-actions button,.lb-open{
+    background:var(--card); border:1px solid var(--border); color:var(--text);
+    border-radius:8px; padding:8px 14px; font-size:14px; cursor:pointer; text-decoration:none;
+  }
+  .lb-actions button:hover,.lb-open:hover{border-color:var(--accent)}
+  .lb-close{position:absolute; top:-42px; right:0; background:none; border:none; color:#fff; font-size:34px; cursor:pointer; line-height:1}
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    background:var(--ok); color:#fff; padding:10px 18px; border-radius:8px;
+    font-size:14px; z-index:200; opacity:0; transition:opacity .2s; pointer-events:none;
+  }
+  .toast.show{opacity:1}
+  @media(max-width:600px){ .grid{grid-template-columns:repeat(auto-fill,minmax(118px,1fr))} }
+</style>
+</head>
+<body>
+<header>
+  <h1>📦 BlogPictures</h1>
+  <p class="sub">圖片 / GIF / 影片素材庫 — 點開即可預覽，並複製連結 / Markdown / HTML</p>
+  <div class="toolbar">
+    <input id="search" type="search" placeholder="搜尋檔名…" autocomplete="off">
+    <select id="filter">
+      <option value="all">全部類型</option>
+      <option value="image">圖片</option>
+      <option value="video">影片</option>
+    </select>
+    <select id="sort">
+      <option value="name">名稱 A→Z</option>
+      <option value="name-desc">名稱 Z→A</option>
+      <option value="type">依類型</option>
+    </select>
+    <button id="refresh" title="重新整理（清快取）">↻</button>
+  </div>
+  <div id="count" class="count"></div>
+</header>
+
+<main id="grid" class="grid"></main>
+<div id="status" class="status"></div>
+
+<footer>
+  資料即時來自
+  <a id="repolink" href="#" target="_blank" rel="noopener">GitHub 倉庫</a>
+  · 由 <code>bin/webpclip</code> 上傳
+</footer>
+
+<div id="lightbox" class="lightbox" hidden>
+  <div class="lb-backdrop"></div>
+  <div class="lb-content">
+    <button class="lb-close" aria-label="關閉">×</button>
+    <div class="lb-media" id="lb-media"></div>
+    <div class="lb-name" id="lb-name"></div>
+    <div class="lb-actions">
+      <button data-copy="url">複製網址</button>
+      <button data-copy="md">複製 Markdown</button>
+      <button data-copy="html">複製 HTML</button>
+      <a class="lb-open" id="lb-open" target="_blank" rel="noopener">開啟原圖 ↗</a>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script>
+const OWNER = "moon-jam", REPO = "BlogPictures", BRANCH = "main";
+const IMG_EXT = ["png","jpg","jpeg","gif","webp","svg","bmp","avif"];
+const VID_EXT = ["mp4","mov","webm","m4v"];
+const CACHE_KEY = "bp_tree_cache_v1", CACHE_TTL = 10 * 60 * 1000; // 10 分鐘
+
+const $ = (id) => document.getElementById(id);
+const rawUrl = (p) => `https://raw.githubusercontent.com/${OWNER}/${REPO}/refs/heads/${BRANCH}/${p}`;
+const baseName = (p) => p.split("/").pop();
+const ext = (p) => { const b = baseName(p), i = b.lastIndexOf("."); return i >= 0 ? b.slice(i + 1).toLowerCase() : ""; };
+const stem = (p) => { const b = baseName(p), i = b.lastIndexOf("."); return i > 0 ? b.slice(0, i) : b; };
+const kindOf = (p) => { const e = ext(p); return IMG_EXT.includes(e) ? "image" : VID_EXT.includes(e) ? "video" : null; };
+const fmtSize = (n) => !n ? "" : n < 1024 ? n + " B" : n < 1048576 ? (n / 1024).toFixed(1) + " KB" : (n / 1048576).toFixed(1) + " MB";
+const itemFromPath = (path, size) => ({ path, kind: kindOf(path), url: rawUrl(path), name: baseName(path), stem: stem(path), size: size || 0 });
+
+let ALL = [];
+let current = null;
+
+async function fetchTree(force) {
+  if (!force) {
+    try {
+      const c = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+      if (c && Date.now() - c.t < CACHE_TTL) return c.tree;
+    } catch (e) {}
+  }
+  const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/git/trees/${BRANCH}?recursive=1`);
+  if (!res.ok) throw new Error("GitHub API " + res.status);
+  const data = await res.json();
+  const tree = data.tree || [];
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), tree })); } catch (e) {}
+  return tree;
+}
+
+function buildList(tree) {
+  return tree
+    .filter((n) => n.type === "blob" && kindOf(n.path))
+    .map((n) => itemFromPath(n.path, n.size));
+}
+
+// 優先讀 CI 產生的 images.json（同源、無 API 限制）；失敗則回退 GitHub API（方便本機預覽）
+async function loadManifest(force) {
+  const r = await fetch("images.json", force ? { cache: "reload" } : {});
+  if (!r.ok) throw new Error("manifest " + r.status);
+  const arr = await r.json();
+  return arr.filter((m) => kindOf(m.path)).map((m) => itemFromPath(m.path, m.size));
+}
+
+function makeCard(it) {
+  const card = document.createElement("div");
+  card.className = "card";
+  const thumb = document.createElement("div");
+  thumb.className = "thumb";
+  if (it.kind === "image") {
+    const img = document.createElement("img");
+    img.loading = "lazy"; img.src = it.url; img.alt = it.name;
+    thumb.appendChild(img);
+  } else {
+    const v = document.createElement("video");
+    v.src = it.url + "#t=0.1"; v.preload = "metadata"; v.muted = true;
+    thumb.appendChild(v);
+    const play = document.createElement("span");
+    play.className = "play"; play.textContent = "▶";
+    thumb.appendChild(play);
+  }
+  const badge = document.createElement("span");
+  badge.className = "badge"; badge.textContent = ext(it.path);
+  thumb.appendChild(badge);
+  const cap = document.createElement("div");
+  cap.className = "cap"; cap.textContent = it.name; cap.title = it.name;
+  card.appendChild(thumb); card.appendChild(cap);
+  card.addEventListener("click", () => openLightbox(it));
+  return card;
+}
+
+function render() {
+  const q = $("search").value.trim().toLowerCase();
+  const f = $("filter").value;
+  const s = $("sort").value;
+  let list = ALL.filter((x) => (f === "all" || x.kind === f) && (!q || x.path.toLowerCase().includes(q)));
+  list.sort((a, b) => a.name.localeCompare(b.name));
+  if (s === "name-desc") list.reverse();
+  if (s === "type") list.sort((a, b) => a.kind.localeCompare(b.kind) || a.name.localeCompare(b.name));
+  const grid = $("grid");
+  grid.innerHTML = "";
+  const frag = document.createDocumentFragment();
+  list.forEach((it) => frag.appendChild(makeCard(it)));
+  grid.appendChild(frag);
+  $("count").textContent = `${list.length} / ${ALL.length} 個檔案`;
+}
+
+function openLightbox(it) {
+  current = it;
+  const media = $("lb-media");
+  media.innerHTML = "";
+  if (it.kind === "image") {
+    const img = document.createElement("img");
+    img.src = it.url; img.alt = it.name;
+    media.appendChild(img);
+  } else {
+    const v = document.createElement("video");
+    v.src = it.url; v.controls = true; v.autoplay = true;
+    media.appendChild(v);
+  }
+  $("lb-name").textContent = it.size ? `${it.name} · ${fmtSize(it.size)}` : it.name;
+  $("lb-open").href = it.url;
+  $("lightbox").hidden = false;
+  document.body.style.overflow = "hidden";
+}
+
+function closeLightbox() {
+  $("lightbox").hidden = true;
+  $("lb-media").innerHTML = "";
+  document.body.style.overflow = "";
+  current = null;
+}
+
+function payloadFor(type, it) {
+  if (type === "md") return `![${it.stem}](${it.url})`;
+  if (type === "html") return `<img src="${it.url}" alt="${it.stem}">`;
+  return it.url;
+}
+
+async function copyText(t) {
+  try {
+    await navigator.clipboard.writeText(t);
+  } catch (e) {
+    const ta = document.createElement("textarea");
+    ta.value = t; document.body.appendChild(ta); ta.select();
+    document.execCommand("copy"); ta.remove();
+  }
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg; t.hidden = false;
+  requestAnimationFrame(() => t.classList.add("show"));
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.classList.remove("show"); t.hidden = true; }, 1500);
+}
+
+async function init(force) {
+  $("status").textContent = "載入中…";
+  // 1) 正式站：讀 CI 產生的 images.json
+  try {
+    ALL = await loadManifest(force);
+    $("status").textContent = "";
+    render();
+    return;
+  } catch (e) { /* 本機預覽或尚未有 manifest → 回退 API */ }
+  // 2) 後備：GitHub API（含快取）
+  try {
+    const tree = await fetchTree(force);
+    ALL = buildList(tree);
+    $("status").textContent = "";
+    render();
+  } catch (e) {
+    try {
+      const c = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+      if (c) { ALL = buildList(c.tree); render(); $("status").textContent = "（使用快取；即時載入失敗：" + e.message + "）"; return; }
+    } catch (_) {}
+    $("status").textContent = "載入失敗：" + e.message + "（稍後再試）";
+  }
+}
+
+// 事件綁定
+$("repolink").href = `https://github.com/${OWNER}/${REPO}`;
+["search", "filter", "sort"].forEach((id) => $(id).addEventListener("input", render));
+$("refresh").addEventListener("click", () => init(true));
+document.querySelector(".lb-close").addEventListener("click", closeLightbox);
+document.querySelector(".lb-backdrop").addEventListener("click", closeLightbox);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeLightbox(); });
+document.querySelectorAll(".lb-actions [data-copy]").forEach((btn) => {
+  btn.addEventListener("click", async () => {
+    if (!current) return;
+    await copyText(payloadFor(btn.dataset.copy, current));
+    toast("已複製到剪貼簿！");
+  });
+});
+
+init(false);
+</script>
+</body>
+</html>
